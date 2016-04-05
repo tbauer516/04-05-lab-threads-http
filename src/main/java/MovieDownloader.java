@@ -22,41 +22,43 @@ public class MovieDownloader {
 
 		//construct the url for the omdbapi API
 		String urlString = "";
-		try {
+		try { // attempts to encode the movie name as UTF-8 in order to make it url compatible
 			urlString = "http://www.omdbapi.com/?s=" + URLEncoder.encode(movie, "UTF-8") + "&type=movie";
-		}catch(UnsupportedEncodingException uee){
+		}catch(UnsupportedEncodingException uee){ // failed the encode, but caught the exception to not crash code
 			return null;
 		}
 
 		HttpURLConnection urlConnection = null;
 		BufferedReader reader = null;
-
+		// initialize variables here
 		String movies[] = null;
 
 		try {
-
+			// attempts to make a URL from the above string
 			URL url = new URL(urlString);
-
+			// attempts to initialize connection, set method to "get" and connect
 			urlConnection = (HttpURLConnection) url.openConnection();
 			urlConnection.setRequestMethod("GET");
 			urlConnection.connect();
-
+			// create an input stream to read data from the JSON from our URL
 			InputStream inputStream = urlConnection.getInputStream();
 			StringBuffer buffer = new StringBuffer();
 			if (inputStream == null) {
-				return null;
+				return null; // if input stream was not created
 			}
-			reader = new BufferedReader(new InputStreamReader(inputStream));
 
+			reader = new BufferedReader(new InputStreamReader(inputStream));
+			// read lines returned from the web query
 			String line = reader.readLine();
 			while (line != null) {
 				buffer.append(line + "\n");
 				line = reader.readLine();
 			}
-
+			// if no results were returned from the search
 			if (buffer.length() == 0) {
 				return null;
 			}
+			// append results and format to be an array
 			String results = buffer.toString();
 			results = results.replace("{\"Search\":[","");
 			results = results.replace("]}","");
@@ -64,18 +66,18 @@ public class MovieDownloader {
 
 			movies = results.split("\n");
 		} 
-		catch (IOException e) {
+		catch (IOException e) { // some exception occured and we caught it here
 			return null;
 		} 
 		finally {
 			if (urlConnection != null) {
-				urlConnection.disconnect();
+				urlConnection.disconnect(); // close out connection to the URL
 			}
 			if (reader != null) {
 				try {
-					reader.close();
+					reader.close(); // close our connection to the reader
 				} 
-				catch (IOException e) {
+				catch (IOException e) { // if an exception was thrown, just ignore it
 				}
 			}
 		}
